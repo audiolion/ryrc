@@ -14,3 +14,20 @@ ex./
       0.1 centimeters
     
 -v is a verbose flag to fully display the unit prefix and unit base.
+
+Get powers of prefixes based on their base units.
+
+ex./
+
+    !power pico
+     
+      1e-12
+
+    !power zetta
+
+      1e-21
+
+    !power overwhelming
+
+      
+    (no output)
