@@ -60,12 +60,13 @@ listen h = forever $ do
  
 -- Dispatch a command
 eval :: String -> Net ()
-eval     "!quit"                    = write "QUIT" ":Exiting" >> io (exitWith ExitSuccess)
-eval x | "!id " `isPrefixOf` x      = privmsg (drop 4 x)
-eval     "!uptime"                  = uptime >>= privmsg
+eval     "!quit"                      = write "QUIT" ":Exiting" >> io (exitWith ExitSuccess)
+eval x | "!id " `isPrefixOf`        x = privmsg (drop 4 x)
+eval     "!uptime"                    = uptime >>= privmsg
 eval x | "!convert -v" `isPrefixOf` x = privmsg (conv' (drop 11 x))
-eval x | "!convert " `isPrefixOf` x = privmsg (conv (drop 9 x))
-eval     _                          = return () -- ignore everything else
+eval x | "!convert " `isPrefixOf`   x = privmsg (conv (drop 9 x))
+eval x | "!power " `isPrefixOf`     x = privmsg (pow (drop 7 x))
+eval     _                            = return () -- ignore everything else
  
 -- Send a privmsg to the current chan + server
 privmsg :: String -> Net ()
@@ -82,14 +83,17 @@ io :: IO a -> Net a
 io = liftIO
 
 conv :: String -> String
-conv x =  case getPrefix (reverse x) of
+conv x =  case getPrefix x of
           Left msg -> msg
           Right prefix -> reportMeasurement (convert (strToMeasurement x) prefix)
 
 conv' :: String -> String
-conv' x =  case getPrefix (reverse x) of
+conv' x =  case getPrefix x of
           Left msg -> msg
           Right prefix -> reportMeasurement' (convert (strToMeasurement x) prefix)
+
+pow :: String -> String
+pow = parsePower'
 
 -- Provide binding for uptime
 uptime :: Net String
