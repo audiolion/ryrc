@@ -84,7 +84,7 @@ data Measurement = MetricMeasurement Double Unit
 getPrefix :: 
   String {- ^ input string -} ->
   Either PrefixError Prefix {- ^ prefix associated with input -}
-getPrefix str = case parsePrefix $ take 3 $ reverse $ takeWhile (/= ' ') str of 
+getPrefix str = case parsePrefix $ take 5 $ reverse $ takeWhile (/= ' ') $ reverse str of 
                 Left msg -> Left msg
                 Right (a, b) -> Right a
 
@@ -139,7 +139,7 @@ parseAbbr str = drop 1 $ takeWhile (/= ' ') (reverse str)
 -- are defintions in the definitions string list
 parsePrefix :: 
   String {- ^ Representing a unit definition -} ->
-  Either String (String, String)
+  Either PrefixError (Prefix, String)
 parsePrefix str
     | str `isPrefixOf` x  = Right (takeWhile (/= '-') x, parseAbbr (drop (length str) x))
     | otherwise           = Left "Prefix could not be found"
@@ -177,11 +177,14 @@ parsePower ::
 parsePower prefix = reverse $ dropWhile (== ' ') (reverse $ take 5 $ dropWhile (/= '1') line)
     where line = (getPrefixLine prefix definitions)
 
+parsePower' :: String -> String
+parsePower' prefix = takeWhile (/= ' ') $ dropWhile (not . isDigit) $ getPrefixLine prefix definitions
+
 -- | Converts a given measurement to a new scale in the current measurement system
 -- given the prefix you want to convert it to
 convert :: Measurement -> Prefix -> Measurement
 convert (MetricMeasurement x unit) prefix 
-    = MetricMeasurement (x * (read (parsePower $ unitPrefix unit) :: Double) / (read (parsePower prefix) :: Double)) (M prefix (unitBase unit))
+    = MetricMeasurement (x * ((read (parsePower $ unitPrefix unit) :: Double) / (read (parsePower prefix) :: Double))) (M prefix (unitBase unit))
 
 -- | Gives the string form of a measurement with its unit abbreviation
 reportMeasurement :: Measurement -> String
@@ -192,4 +195,8 @@ reportMeasurement (MetricMeasurement x unit)
 -- Sort of like a verbose -v option
 reportMeasurement' :: Measurement -> String
 reportMeasurement' (MetricMeasurement x unit)
-    = show x ++ unitStr unit
+    = show x ++ [' '] ++ unitStr unit
+
+getRight :: Either t a -> Maybe a
+getRight (Left  _) = Nothing
+getRight (Right x) = (Just x)
