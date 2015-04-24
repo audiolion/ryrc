@@ -12,7 +12,7 @@ import Data.Units
 server = "irc.freenode.org"
 port   = 6667
 chan   = "#whatup"
-nick   = "ryrc"
+nick   = "r-yrc"
  
 -- The 'Net' monad, a wrapper over IO, carrying the bot's immutable state.
 type Net = ReaderT Bot IO
@@ -42,7 +42,7 @@ connect = notify $ do
 run :: Net ()
 run = do
     write "NICK" nick
-    write "USER" (nick++" 0 * :ryrc bot")
+    write "USER" (nick++" 0 * :r-yrc bot")
     write "JOIN" chan
     asks socket >>= listen
  
@@ -61,11 +61,11 @@ listen h = forever $ do
 -- Dispatch a command
 eval :: String -> Net ()
 eval     "!quit"                      = write "QUIT" ":Exiting" >> io (exitWith ExitSuccess)
-eval x | "!id " `isPrefixOf`        x = privmsg (drop 4 x)
+eval x | "!id "        `isPrefixOf` x = privmsg (drop 4 x)
 eval     "!uptime"                    = uptime >>= privmsg
 eval x | "!convert -v" `isPrefixOf` x = privmsg (conv' (drop 11 x))
-eval x | "!convert " `isPrefixOf`   x = privmsg (conv (drop 9 x))
-eval x | "!power " `isPrefixOf`     x = privmsg (pow (drop 7 x))
+eval x | "!convert "   `isPrefixOf` x = privmsg (conv (drop 9 x))
+eval x | "!power "     `isPrefixOf` x = privmsg (pow (drop 7 x))
 eval     _                            = return () -- ignore everything else
  
 -- Send a privmsg to the current chan + server
@@ -83,14 +83,18 @@ io :: IO a -> Net a
 io = liftIO
 
 conv :: String -> String
-conv x =  case getPrefix x of
-          Left msg -> msg
-          Right prefix -> reportMeasurement (convert (strToMeasurement x) prefix)
+conv x = reportMeasurement (convert (strToMeasurement x) x)
+
+--          case findByPrefix x of
+--          Left msg -> msg
+--          Right prefix -> reportMeasurement (convert (strToMeasurement x) prefix)
 
 conv' :: String -> String
-conv' x =  case getPrefix x of
-          Left msg -> msg
-          Right prefix -> reportMeasurement' (convert (strToMeasurement x) prefix)
+conv' x = reportMeasurement' (convert (strToMeasurement x) prefix) 
+          
+--          case getPrefix x of
+--          Left msg -> msg
+--          Right prefix -> reportMeasurement' (convert (strToMeasurement x) prefix)
 
 pow :: String -> String
 pow = parsePower'
@@ -102,7 +106,7 @@ uptime = do
     zero <- asks starttime
     return . pretty $ diffClockTimes now zero
 
--- taken from haskell.org on to pretty print time values
+-- taken from haskell.org on how to pretty print time values
 pretty :: TimeDiff -> String
 pretty td =
     unwords $ map (uncurry (++) . first show) $
