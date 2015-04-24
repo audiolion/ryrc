@@ -5,11 +5,11 @@ Currently supports metric unit conversions from one base to another base.
 
 ex./
 
-    !convert 100 millimeters to meters
+    !convert 100 milli meters to meters
     
       0.1m
     
-    !convert -v 100 millimeters to centimeters
+    !convert -v 100 milli meters to centimeters
     
       0.1 centimeters
     
